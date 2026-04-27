@@ -504,9 +504,16 @@
 
         function getStatus(lvl) {
             const d = getDepth(lvl);
-            if (d < 1.5) return {s:'Grounded', m:'Dock on dry ground', b:'Grounded', c:'badge-grounded'};
-            if (d < 3) return {s:'Usable', m:'Good depth', b:'Usable', c:'badge-excellent'};
-            return {s:'Excellent', m:'Great depth', b:'Excellent', c:'badge-excellent'};
+            // Floating-dock threshold ~1.5 ft (18") — below that, the dock rests on the lake bed.
+            if (d < 1.5) {
+                const inchesShort = Math.max(0, Math.round((1.5 - d) * 12));
+                const msg = inchesShort > 0
+                    ? `Resting on the lake bed — needs ~${inchesShort}" more to float`
+                    : 'Resting on the lake bed — about to float';
+                return {s:'Aground', m: msg, b:'Aground', c:'badge-grounded'};
+            }
+            if (d < 3) return {s:'Floating', m:'Floating in shallow water', b:'Floating', c:'badge-excellent'};
+            return {s:'Good Depth', m:'Plenty of room to float', b:'Good Depth', c:'badge-excellent'};
         }
 
         function getMemorial(year) {
@@ -664,13 +671,13 @@
             preds.forEach(p => {
                 html += `<div class="prediction">
                     <div><div class="pred-date">${p.date.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
-                    <div style="font-size:14px;color:#4B5562;">${p.level.toFixed(1)} ft</div></div>
+                    <div style="font-size:14px;color:#4B5563;">${p.level.toFixed(1)} ft</div></div>
                     <div class="pred-depth">${p.depth.toFixed(1)} ft</div>
                 </div>`;
             });
             document.getElementById('predictions').innerHTML = html;
 
-            if (st.s === 'Grounded') {
+            if (st.s === 'Aground') {
                 const mem = getMemorial(new Date().getFullYear());
                 const usable = preds.find(p => p.depth >= 1.5);
                 if (usable) {
