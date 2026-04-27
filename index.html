@@ -336,18 +336,18 @@
 <body>
     <div class="app">
         <div class="header">
-            <h1>ð¤ Bollinger Creek Dock</h1>
+            <h1>🚤 Bollinger Creek Dock</h1>
             <p>481 Jumping Bass Cove</p>
             <button class="refresh-btn" onclick="refreshAll()" id="btn">
-                <span id="icon">ð</span> Refresh Data
+                <span id="icon">🔄</span> Refresh Data
             </button>
         </div>
 
         <div class="card">
             <div class="tabs">
-                <button class="tab active" onclick="switchTab(event, 'dock')">ð Dock</button>
-                <button class="tab" onclick="switchTab(event, 'weather')">ð¤ï¸ Weather</button>
-                <button class="tab" onclick="switchTab(event, 'cameras')">ð¹ Cams</button>
+                <button class="tab active" onclick="switchTab(event, 'dock')">📊 Dock</button>
+                <button class="tab" onclick="switchTab(event, 'weather')">🌤️ Weather</button>
+                <button class="tab" onclick="switchTab(event, 'cameras')">📹 Cams</button>
             </div>
 
             <div id="dock-tab" class="tab-content active">
@@ -358,12 +358,12 @@
 
                 <div class="sun-times">
                     <div class="sun-time">
-                        <div class="icon">ð</div>
+                        <div class="icon">🌅</div>
                         <div class="label">Sunrise</div>
                         <div class="time" id="sunrise">6:55 AM</div>
                     </div>
                     <div class="sun-time">
-                        <div class="icon">ð</div>
+                        <div class="icon">🌇</div>
                         <div class="label">Sunset</div>
                         <div class="time" id="sunset">5:45 PM</div>
                     </div>
@@ -376,7 +376,7 @@
                     </div>
                     <div class="metric">
                         <div class="metric-label">Water Temp</div>
-                        <div class="metric-value"><span id="waterTemp">--</span> <small style="font-size: 14px; color: #4B5563;">Â°F</small></div>
+                        <div class="metric-value"><span id="waterTemp">--</span> <small style="font-size: 14px; color: #4B5563;">°F</small></div>
                         <div class="temp-note">Seasonal est.</div>
                     </div>
                     <div class="metric">
@@ -393,25 +393,25 @@
                     </div>
                     <div class="metric">
                         <div class="metric-label">Air Temp</div>
-                        <div class="metric-value"><span id="airTemp">--</span> <small style="font-size: 14px; color: #4B5563;">Â°F</small></div>
+                        <div class="metric-value"><span id="airTemp">--</span> <small style="font-size: 14px; color: #4B5563;">°F</small></div>
                         <div class="temp-note">From weather</div>
                     </div>
                 </div>
 
                 <div class="temp-source-box">
-                    <strong>ð¡ï¸ Temperature Info:</strong><br>
+                    <strong>🌡️ Temperature Info:</strong><br>
                     <div style="margin-top: 8px; font-size: 12px;">
                         Water temp uses seasonal estimates. Air temp from NWS forecast. For actual water temp: <a href="https://www.ameren.com/missouri/residential/lake-of-the-ozarks" target="_blank" rel="noopener" style="color: #0891B2; font-weight: 600;">Ameren.com</a> or 573-365-9205
                     </div>
                 </div>
 
                 <div id="alert" class="alert" style="display: none; margin-top: 16px;">
-                    <h3 style="font-size: 16px; margin-bottom: 8px;">ð <span id="alertTitle"></span></h3>
+                    <h3 style="font-size: 16px; margin-bottom: 8px;">📅 <span id="alertTitle"></span></h3>
                     <p id="alertMsg" style="font-size: 14px; line-height: 1.5;"></p>
                 </div>
 
                 <div style="margin-top: 20px;">
-                    <h2>ð Season Forecast</h2>
+                    <h2>📈 Season Forecast</h2>
                     <div id="predictions"></div>
                 </div>
             </div>
@@ -426,7 +426,7 @@
             </div>
 
             <div id="cameras-tab" class="tab-content">
-                <h2>ð¹ LOZ Live Cameras</h2>
+                <h2>📹 LOZ Live Cameras</h2>
 
                 <div style="margin-bottom: 20px;">
                     <div class="cam-title-bar">
@@ -437,17 +437,17 @@
                         <iframe src="https://lozlocal.com/loz-live-web-cams/" allowfullscreen></iframe>
                     </div>
                     <a href="https://lozlocal.com/loz-live-web-cams/" target="_blank" rel="noopener" class="cam-link-btn">
-                        Open Full Page â
+                        Open Full Page →
                     </a>
                 </div>
 
                 <div class="info-box">
-                    <strong>ð¹ Multiple Camera Locations:</strong><br>
+                    <strong>📹 Multiple Camera Locations:</strong><br>
                     <div style="margin-top: 8px; font-size: 12px; line-height: 1.6;">
-                        â¢ Bagnell Dam â¢ Shady Gators (MM 18)<br>
-                        â¢ Captain Ron's â¢ Coconuts Caribbean<br>
-                        â¢ Jolly Rogers â¢ And more!<br><br>
-                        ð¡ Tap "Open Full Page" for all cameras
+                        • Bagnell Dam • Shady Gators (MM 18)<br>
+                        • Captain Ron's • Coconuts Caribbean<br>
+                        • Jolly Rogers • And more!<br><br>
+                        💡 Tap "Open Full Page" for all cameras
                     </div>
                 </div>
             </div>
@@ -589,9 +589,9 @@
                         <div class="weather-day">
                             <div class="weather-day-name">${period.name}</div>
                             <div class="weather-icon">${icon}</div>
-                            <div class="weather-temp">${temp}Â°F</div>
+                            <div class="weather-temp">${temp}°F</div>
                             <div class="weather-desc">${period.shortForecast}</div>
-                            ${rain > 20 ? `<div class="rain-prob">ð§ ${rain}%</div>` : ''}
+                            ${rain > 20 ? `<div class="rain-prob">💧 ${rain}%</div>` : ''}
                         </div>
                     `;
                 });
@@ -607,13 +607,13 @@
 
         function getWeatherEmoji(forecast) {
             const f = forecast.toLowerCase();
-            if (f.includes('thunder') || f.includes('storm')) return 'âï¸';
-            if (f.includes('rain') || f.includes('shower')) return 'ð§ï¸';
-            if (f.includes('snow')) return 'âï¸';
-            if (f.includes('cloud') || f.includes('overcast')) return 'âï¸';
-            if (f.includes('partly')) return 'â';
-            if (f.includes('clear') || f.includes('sunny')) return 'âï¸';
-            return 'ð¤ï¸';
+            if (f.includes('thunder') || f.includes('storm')) return '⛈️';
+            if (f.includes('rain') || f.includes('shower')) return '🌧️';
+            if (f.includes('snow')) return '❄️';
+            if (f.includes('cloud') || f.includes('overcast')) return '☁️';
+            if (f.includes('partly')) return '⛅';
+            if (f.includes('clear') || f.includes('sunny')) return '☀️';
+            return '🌤️';
         }
 
         function predict(curr) {
@@ -721,7 +721,7 @@
                 console.error(e);
             } finally {
                 btn.disabled = false;
-                icon.textContent = 'ð';
+                icon.textContent = '🔄';
             }
         }
 
