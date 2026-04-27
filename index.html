@@ -457,7 +457,10 @@
     </div>
 
     <script>
-        const FULL = 660, BOTTOM = 656, OFFSET = -0.8;
+        // Calibration anchor: on 2026-04-27 the USGS gauge read 658.0 ft
+        // and actual water depth at the dock was measured at 10" (0.833 ft).
+        // That fixes BOTTOM at 658.0 + OFFSET - 0.833 = 656.367 ft.
+        const FULL = 660, BOTTOM = 656.367, OFFSET = -0.8;
         const LAT = 38.1986, LON = -92.6388;
         let currentTab = 'dock';
         let cachedWeatherData = null;
@@ -661,7 +664,7 @@
             preds.forEach(p => {
                 html += `<div class="prediction">
                     <div><div class="pred-date">${p.date.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
-                    <div style="font-size:14px;color:#4B5563;">${p.level.toFixed(1)} ft</div></div>
+                    <div style="font-size:14px;color:#4B5562;">${p.level.toFixed(1)} ft</div></div>
                     <div class="pred-depth">${p.depth.toFixed(1)} ft</div>
                 </div>`;
             });
