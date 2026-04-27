@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0891B2">
+    <title>Bollinger Creek Dock Monitor</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --primary: #0891B2;
+            --primary-dark: #0E7490;
+            --secondary: #06B6D4;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --gray-50: #F9FAFB;
+            --gray-600: #4B5563;
+            --gray-800: #1F2937;
+            --gray-900: #111827;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            min-height: 100vh;
+            padding: 16px 16px 80px;
+        }
+
+        .app { max-width: 500px; margin: 0 auto; }
+
+        .header {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .header h1 { font-size: 24px; color: var(--primary); margin-bottom: 4px; }
+        .header p { font-size: 14px; color: var(--gray-600); }
+
+        .refresh-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .refresh-btn:active { transform: scale(0.98); background: var(--primary-dark); }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .card h2 { font-size: 18px; margin-bottom: 16px; color: var(--gray-900); }
+
+        .status-header {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray-600);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .status-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .badge-grounded { background: #FEE2E2; color: #991B1B; }
+        .badge-excellent { background: #D1FAE5; color: #065F46; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .metric {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: var(--gray-600);
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .alert {
+            background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+            border-left: 4px solid var(--warning);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .prediction {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .prediction:last-child { border-bottom: none; }
+
+        .pred-date { font-weight: 600; color: var(--gray-900); font-size: 14px; }
+        .pred-depth { font-weight: 700; color: var(--primary); font-size: 16px; }
+
+        .weather-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .weather-day {
+            background: var(--gray-50);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .weather-day-name {
+            font-weight: 600;
+            color: var(--gray-900);
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .weather-temp {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 8px 0;
+        }
+
+        .weather-desc { font-size: 12px; color: var(--gray-600); margin-top: 4px; }
+        .weather-icon { font-size: 32px; margin: 8px 0; }
+        .rain-prob {
+            font-size: 12px;
+            color: var(--secondary);
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .cam-frame-container {
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            position: relative;
+            padding-bottom: 56.25%;
+        }
+
+        .cam-frame-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .cam-title-bar {
+            background: var(--gray-800);
+            color: white;
+            padding: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .cam-status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .cam-link-btn {
+            display: block;
+            background: var(--primary);
+            color: white;
+            text-align: center;
+            padding: 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 12px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            border-bottom: 2px solid #E5E7EB;
+        }
+
+        .tab {
+            padding: 12px 16px;
+            background: none;
+            border: none;
+            color: var(--gray-600);
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .sun-times {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .sun-time {
+            flex: 1;
+            background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .sun-time .icon { font-size: 32px; margin-bottom: 8px; }
+        .sun-time .label {
+            font-size: 12px;
+            color: var(--gray-600);
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .sun-time .time {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .update {
+            text-align: center;
+            font-size: 12px;
+            color: white;
+            opacity: 0.9;
+            margin-top: 16px;
+        }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid white;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .temp-note {
+            font-size: 10px;
+            color: var(--gray-600);
+            margin-top: 2px;
+        }
+
+        .temp-source-box {
+            background: #DBEAFE;
+            border-left: 4px solid var(--primary);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 16px;
+            font-size: 13px;
+        }
+
+        .info-box {
+            background: #FEF3C7;
+            border-left: 4px solid var(--warning);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 16px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <div class="header">
+            <h1>🚤 Bollinger Creek Dock</h1>
+            <p>481 Jumping Bass Cove</p>
+            <button class="refresh-btn" onclick="refreshAll()" id="btn">
+                <span id="icon">🔄</span> Refresh Data
+            </button>
+        </div>
+
+        <div class="card">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab(event, 'dock')">📊 Dock</button>
+                <button class="tab" onclick="switchTab(event, 'weather')">🌤️ Weather</button>
+                <button class="tab" onclick="switchTab(event, 'cameras')">📹 Cams</button>
+            </div>
+
+            <div id="dock-tab" class="tab-content active">
+                <div class="status-header">Dock Status</div>
+                <div class="status-value" id="status">Loading...</div>
+                <p id="msg" style="font-size: 13px; color: #4B5563; margin-top: 4px;"></p>
+                <span id="badge" class="badge"></span>
+
+                <div class="sun-times">
+                    <div class="sun-time">
+                        <div class="icon">🌅</div>
+                        <div class="label">Sunrise</div>
+                        <div class="time" id="sunrise">6:55 AM</div>
+                    </div>
+                    <div class="sun-time">
+                        <div class="icon">🌇</div>
+                        <div class="label">Sunset</div>
+                        <div class="time" id="sunset">5:45 PM</div>
+                    </div>
+                </div>
+
+                <div class="grid" style="margin-top: 16px;">
+                    <div class="metric">
+                        <div class="metric-label">Lake Level</div>
+                        <div class="metric-value"><span id="level">--</span> <small style="font-size: 14px; color: #4B5563;">ft</small></div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Water Temp</div>
+                        <div class="metric-value"><span id="waterTemp">--</span> <small style="font-size: 14px; color: #4B5563;">°F</small></div>
+                        <div class="temp-note">Seasonal est.</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">At Your Dock</div>
+                        <div class="metric-value"><span id="depth">--</span> <small style="font-size: 14px; color: #4B5563;">ft</small></div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Your Cove</div>
+                        <div class="metric-value"><span id="cove">--</span> <small style="font-size: 14px; color: #4B5563;">ft</small></div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">To Full Pool</div>
+                        <div class="metric-value"><span id="pool">--</span> <small style="font-size: 14px; color: #4B5563;">ft</small></div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Air Temp</div>
+                        <div class="metric-value"><span id="airTemp">--</span> <small style="font-size: 14px; color: #4B5563;">°F</small></div>
+                        <div class="temp-note">From weather</div>
+                    </div>
+                </div>
+
+                <div class="temp-source-box">
+                    <strong>🌡️ Temperature Info:</strong><br>
+                    <div style="margin-top: 8px; font-size: 12px;">
+                        Water temp uses seasonal estimates. Air temp from NWS forecast. For actual water temp: <a href="https://www.ameren.com/missouri/residential/lake-of-the-ozarks" target="_blank" rel="noopener" style="color: #0891B2; font-weight: 600;">Ameren.com</a> or 573-365-9205
+                    </div>
+                </div>
+
+                <div id="alert" class="alert" style="display: none; margin-top: 16px;">
+                    <h3 style="font-size: 16px; margin-bottom: 8px;">📅 <span id="alertTitle"></span></h3>
+                    <p id="alertMsg" style="font-size: 14px; line-height: 1.5;"></p>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <h2>📈 Season Forecast</h2>
+                    <div id="predictions"></div>
+                </div>
+            </div>
+
+            <div id="weather-tab" class="tab-content">
+                <h2>7-Day Forecast</h2>
+                <div id="weatherGrid" class="weather-grid">
+                    <div style="text-align: center; padding: 40px; color: #4B5563;">
+                        Loading weather...
+                    </div>
+                </div>
+            </div>
+
+            <div id="cameras-tab" class="tab-content">
+                <h2>📹 LOZ Live Cameras</h2>
+
+                <div style="margin-bottom: 20px;">
+                    <div class="cam-title-bar">
+                        <span class="cam-status-dot"></span>
+                        <span>All LOZ Live Cameras</span>
+                    </div>
+                    <div class="cam-frame-container">
+                        <iframe src="https://lozlocal.com/loz-live-web-cams/" allowfullscreen></iframe>
+                    </div>
+                    <a href="https://lozlocal.com/loz-live-web-cams/" target="_blank" rel="noopener" class="cam-link-btn">
+                        Open Full Page →
+                    </a>
+                </div>
+
+                <div class="info-box">
+                    <strong>📹 Multiple Camera Locations:</strong><br>
+                    <div style="margin-top: 8px; font-size: 12px; line-height: 1.6;">
+                        • Bagnell Dam • Shady Gators (MM 18)<br>
+                        • Captain Ron's • Coconuts Caribbean<br>
+                        • Jolly Rogers • And more!<br><br>
+                        💡 Tap "Open Full Page" for all cameras
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="update">Last updated: <span id="time">--</span></div>
+    </div>
+
+    <script>
+        const FULL = 660, BOTTOM = 656, OFFSET = -0.8;
+        const LAT = 38.1986, LON = -92.6388;
+        let currentTab = 'dock';
+        let cachedWeatherData = null;
+
+        const curve = [
+            {m:0,l:654},{m:1,l:654},{m:2,l:656},{m:3,l:658},
+            {m:4,l:660},{m:5,l:660},{m:6,l:660},{m:7,l:660},
+            {m:8,l:659},{m:9,l:658},{m:10,l:656},{m:11,l:654}
+        ];
+
+        const waterTempByMonth = {
+            0:40,1:42,2:48,3:56,4:65,5:74,6:80,7:82,8:76,9:66,10:54,11:44
+        };
+
+        const sunTimesByMonth = {
+            0:{sunrise:'7:15 AM',sunset:'5:15 PM'},1:{sunrise:'6:55 AM',sunset:'5:45 PM'},
+            2:{sunrise:'6:20 AM',sunset:'6:15 PM'},3:{sunrise:'5:35 AM',sunset:'6:45 PM'},
+            4:{sunrise:'5:00 AM',sunset:'7:15 PM'},5:{sunrise:'4:45 AM',sunset:'7:35 PM'},
+            6:{sunrise:'5:00 AM',sunset:'7:30 PM'},7:{sunrise:'5:30 AM',sunset:'7:00 PM'},
+            8:{sunrise:'6:00 AM',sunset:'6:15 PM'},9:{sunrise:'6:30 AM',sunset:'5:30 PM'},
+            10:{sunrise:'6:05 AM',sunset:'4:50 PM'},11:{sunrise:'7:00 AM',sunset:'4:45 PM'}
+        };
+
+        function switchTab(evt, tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            evt.currentTarget.classList.add('active');
+
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(tab + '-tab').classList.add('active');
+
+            currentTab = tab;
+
+            if (tab === 'weather' && !document.getElementById('weatherGrid').dataset.loaded) {
+                loadWeather();
+            }
+        }
+
+        function getDepth(lvl) {
+            return Math.max(0, (lvl + OFFSET) - BOTTOM);
+        }
+
+        function getStatus(lvl) {
+            const d = getDepth(lvl);
+            if (d < 1.5) return {s:'Grounded', m:'Dock on dry ground', b:'Grounded', c:'badge-grounded'};
+            if (d < 3) return {s:'Usable', m:'Good depth', b:'Usable', c:'badge-excellent'};
+            return {s:'Excellent', m:'Great depth', b:'Excellent', c:'badge-excellent'};
+        }
+
+        function getMemorial(year) {
+            const may = new Date(year, 4, 31);
+            const day = may.getDay();
+            return new Date(year, 4, 31 - (day === 0 ? 6 : day - 1));
+        }
+
+        function estimateWaterTemp(airTemp, month) {
+            const baseTemp = waterTempByMonth[month];
+            if (airTemp && airTemp > 32) {
+                const adjustment = (airTemp - (baseTemp + 10)) * 0.2;
+                return Math.round(Math.max(32, Math.min(85, baseTemp + adjustment)));
+            }
+            return baseTemp;
+        }
+
+        async function fetchLakeData() {
+            try {
+                const url = 'https://waterservices.usgs.gov/nwis/iv/?format=json&sites=06925500&parameterCd=00062';
+                const res = await fetch(url);
+                const data = await res.json();
+
+                const vals = data.value.timeSeries[0].values[0].value;
+                const latest = vals[vals.length - 1];
+
+                return {
+                    level: parseFloat(latest.value),
+                    time: new Date(latest.dateTime)
+                };
+            } catch(e) {
+                const cached = localStorage.getItem('lake');
+                if (cached) {
+                    const d = JSON.parse(cached);
+                    d.time = new Date(d.time);
+                    return d;
+                }
+                return {level: curve[new Date().getMonth()].l, time: new Date()};
+            }
+        }
+
+        async function loadWeather() {
+            try {
+                const pointRes = await fetch(`https://api.weather.gov/points/${LAT},${LON}`);
+                const pointData = await pointRes.json();
+
+                const forecastRes = await fetch(pointData.properties.forecast);
+                const forecastData = await forecastRes.json();
+
+                const periods = forecastData.properties.periods.slice(0, 7);
+
+                cachedWeatherData = periods[0];
+
+                if (currentTab === 'dock' && cachedWeatherData) {
+                    document.getElementById('airTemp').textContent = cachedWeatherData.temperature;
+                }
+
+                let html = '';
+                periods.forEach(period => {
+                    const temp = period.temperature;
+                    const icon = getWeatherEmoji(period.shortForecast);
+                    const rain = period.probabilityOfPrecipitation?.value || 0;
+
+                    html += `
+                        <div class="weather-day">
+                            <div class="weather-day-name">${period.name}</div>
+                            <div class="weather-icon">${icon}</div>
+                            <div class="weather-temp">${temp}°F</div>
+                            <div class="weather-desc">${period.shortForecast}</div>
+                            ${rain > 20 ? `<div class="rain-prob">💧 ${rain}%</div>` : ''}
+                        </div>
+                    `;
+                });
+
+                document.getElementById('weatherGrid').innerHTML = html;
+                document.getElementById('weatherGrid').dataset.loaded = 'true';
+            } catch(e) {
+                console.log('Weather fetch error:', e);
+                document.getElementById('weatherGrid').innerHTML =
+                    '<div style="padding: 20px; text-align: center; color: #EF4444;">Unable to load weather</div>';
+            }
+        }
+
+        function getWeatherEmoji(forecast) {
+            const f = forecast.toLowerCase();
+            if (f.includes('thunder') || f.includes('storm')) return '⛈️';
+            if (f.includes('rain') || f.includes('shower')) return '🌧️';
+            if (f.includes('snow')) return '❄️';
+            if (f.includes('cloud') || f.includes('overcast')) return '☁️';
+            if (f.includes('partly')) return '⛅';
+            if (f.includes('clear') || f.includes('sunny')) return '☀️';
+            return '🌤️';
+        }
+
+        function predict(curr) {
+            const preds = [], today = new Date(), mem = getMemorial(today.getFullYear());
+            const toMem = Math.max(0, (mem - today) / 86400000);
+            let lvl = curr;
+
+            for (let i = 0; i < 180; i += 14) {
+                const d = new Date(today);
+                d.setDate(today.getDate() + i);
+                const mc = curve[d.getMonth()];
+
+                if (d < mem && today < mem) {
+                    lvl = curr + ((FULL - curr) * Math.min(1, i / toMem));
+                } else if (d >= mem && d.getMonth() >= 4 && d.getMonth() <= 8) {
+                    lvl = FULL;
+                } else {
+                    lvl += (mc.l - lvl) * 0.4;
+                }
+
+                lvl = Math.max(645, Math.min(FULL, lvl));
+                preds.push({date: d, level: lvl, depth: getDepth(lvl)});
+            }
+            return preds;
+        }
+
+        async function updateDock(data) {
+            const st = getStatus(data.level);
+            const cv = data.level + OFFSET;
+            const dp = getDepth(data.level);
+
+            document.getElementById('status').textContent = st.s;
+            document.getElementById('msg').textContent = st.m;
+            document.getElementById('badge').textContent = st.b;
+            document.getElementById('badge').className = 'badge ' + st.c;
+
+            document.getElementById('level').textContent = data.level.toFixed(1);
+            document.getElementById('depth').textContent = dp.toFixed(1);
+            document.getElementById('cove').textContent = cv.toFixed(1);
+            document.getElementById('pool').textContent = (FULL - data.level).toFixed(1);
+            document.getElementById('time').textContent = data.time.toLocaleString();
+
+            const month = new Date().getMonth();
+            const sunTimes = sunTimesByMonth[month];
+            document.getElementById('sunrise').textContent = sunTimes.sunrise;
+            document.getElementById('sunset').textContent = sunTimes.sunset;
+
+            if (!cachedWeatherData) {
+                await loadWeather();
+            }
+
+            if (cachedWeatherData && cachedWeatherData.temperature) {
+                const airTemp = cachedWeatherData.temperature;
+                document.getElementById('airTemp').textContent = airTemp;
+                const waterTemp = estimateWaterTemp(airTemp, data.time.getMonth());
+                document.getElementById('waterTemp').textContent = waterTemp;
+            } else {
+                document.getElementById('waterTemp').textContent = waterTempByMonth[data.time.getMonth()];
+            }
+
+            const preds = predict(data.level);
+            let html = '';
+            preds.forEach(p => {
+                html += `<div class="prediction">
+                    <div><div class="pred-date">${p.date.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
+                    <div style="font-size:14px;color:#4B5563;">${p.level.toFixed(1)} ft</div></div>
+                    <div class="pred-depth">${p.depth.toFixed(1)} ft</div>
+                </div>`;
+            });
+            document.getElementById('predictions').innerHTML = html;
+
+            if (st.s === 'Grounded') {
+                const mem = getMemorial(new Date().getFullYear());
+                const usable = preds.find(p => p.depth >= 1.5);
+                if (usable) {
+                    document.getElementById('alertTitle').textContent = 'Season Outlook';
+                    document.getElementById('alertMsg').textContent =
+                        `Dock floating by ${usable.date.toLocaleDateString('en-US',{month:'long',day:'numeric'})}. Full pool by Memorial Day (${mem.toLocaleDateString('en-US',{month:'long',day:'numeric'})}).`;
+                    document.getElementById('alert').style.display = 'block';
+                }
+            } else {
+                document.getElementById('alert').style.display = 'none';
+            }
+
+            try { localStorage.setItem('lake', JSON.stringify(data)); } catch(e) {}
+        }
+
+        async function refreshAll() {
+            const btn = document.getElementById('btn');
+            const icon = document.getElementById('icon');
+            btn.disabled = true;
+            icon.innerHTML = '<span class="spinner"></span>';
+
+            try {
+                cachedWeatherData = null;
+
+                const data = await fetchLakeData();
+                await updateDock(data);
+
+                if (currentTab === 'weather') {
+                    document.getElementById('weatherGrid').dataset.loaded = '';
+                    await loadWeather();
+                }
+            } catch(e) {
+                console.error(e);
+            } finally {
+                btn.disabled = false;
+                icon.textContent = '🔄';
+            }
+        }
+
+        (async () => {
+            const data = await fetchLakeData();
+            await updateDock(data);
+        })();
+    </script>
+</body>
+</html>
